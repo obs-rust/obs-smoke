@@ -44,6 +44,9 @@ def main() -> int:
         if r.get("status") == "pass" and r.get("rust_libobs") is not True:
             r["status"] = "fail"
             r["error"] = "OBS started, but the build has no Rust code in libobs"
+        elif r.get("status") == "pass" and r.get("product") != "OBS-Studio-Rust":
+            r["status"] = "fail"
+            r["error"] = f"Rust build identifies itself as {r.get('product')!r}, not 'OBS-Studio-Rust'"
     platforms = [
         found.get(p, {"os": p, "status": "fail", "error": "smoke job produced no result"}) for p in PLATFORMS
     ]

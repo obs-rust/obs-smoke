@@ -52,7 +52,7 @@ footer a {{ color:inherit; }}
 </head>
 <body>
 <main>
-<h1>OBS Rust smoke tests <span class="badge {status}">{status_text}</span></h1>
+<h1>OBS-Studio-Rust smoke tests <span class="badge {status}">{status_text}</span></h1>
 <p class="meta">Target <strong>{target}</strong> · {source} · run <a href="{run_url}">#{run_id}</a> · {generated}</p>
 <div class="grid">
 {cards}
@@ -70,7 +70,9 @@ CARD = """<section class="card">
 <div class="body">
 <h2>{label} <span class="badge {status}">{status_text}</span></h2>
 <dl>
-<dt>OBS version</dt><dd>{version}</dd>
+<dt>Product</dt><dd>{product}</dd>
+<dt>Version</dt><dd>{version}</dd>
+<dt>Based on OBS</dt><dd>{base}</dd>
 <dt>Rust libobs</dt><dd>{rust}</dd>
 <dt>Startup</dt><dd>{startup}</dd>
 <dt>Runner</dt><dd>{runner}</dd>
@@ -107,7 +109,9 @@ def main() -> int:
                 label=LABELS[p["os"]],
                 status=p["status"],
                 status_text=p["status"].upper(),
+                product=esc(p.get("product")),
                 version=esc(p.get("obs_version")),
+                base=esc(p.get("base_version")),
                 rust={True: "yes", False: "NO"}.get(p.get("rust_libobs"), "—"),
                 startup=f"{secs:.1f} s" if isinstance(secs, (int, float)) else "—",
                 runner=esc(" ".join(filter(None, [p.get("runner_image"), p.get("arch")]))),

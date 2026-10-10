@@ -4,7 +4,8 @@
 
 Proves the **Rust build of OBS** ([obs-rust/obs-studio](https://github.com/obs-rust/obs-studio)) starts on
 **Windows, macOS and Linux**. Each platform builds the fork with `ENABLE_RUST_LIBOBS=ON`, checks that Rust
-code is linked into libobs, installs the package, launches OBS, waits for `==== Startup complete` in the OBS
+code is linked into libobs, installs the package, launches OBS, checks that it identifies itself as
+`OBS-Studio-Rust <version>`, waits for `==== Startup complete` in the OBS
 log and takes a desktop screenshot while OBS is still running. Upstream OBS builds are never used.
 
 **Latest results:** https://obs-rust.github.io/obs-smoke/

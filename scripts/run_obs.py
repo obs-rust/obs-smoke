@@ -24,6 +24,7 @@ from pathlib import Path
 
 STARTUP_MARKER = "==== Startup complete"
 VERSION_RE = re.compile(r"OBS (\d+\.\d+\.\d+\S*) \(")
+RUST_VERSION_RE = re.compile(r"OBS-Studio-Rust (\S+) \(based on OBS (\S+)")
 
 
 def config_dir(os_name: str) -> Path:
@@ -93,7 +94,9 @@ def main() -> int:
         "startup_complete": False,
         "startup_seconds": None,
         "alive_at_screenshot": False,
+        "product": None,
         "obs_version": None,
+        "base_version": None,
         "screenshot": None,
         "log": None,
         "error": None,
@@ -138,9 +141,15 @@ def main() -> int:
         text = log_path.read_text(errors="replace")
         shutil.copy(log_path, out / f"{args.os}.log")
         result["log"] = f"{args.os}.log"
-        m = VERSION_RE.search(text)
+        m = RUST_VERSION_RE.search(text)
         if m:
-            result["obs_version"] = m.group(1)
+            result["product"] = "OBS-Studio-Rust"
+            result["obs_version"], result["base_version"] = m.group(1), m.group(2)
+        else:
+            m = VERSION_RE.search(text)
+            if m:
+                result["product"] = "OBS Studio"
+                result["obs_version"] = m.group(1)
 
     if result["startup_complete"] and result["alive_at_screenshot"] and result["screenshot"]:
         result["status"] = "pass"
