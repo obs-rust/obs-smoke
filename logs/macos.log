@@ -1,0 +1,117 @@
+22:10:11.391: [macOS] Permission for audio device access granted.
+22:10:11.398: [macOS] Permission for video device access denied.
+22:10:11.401: [macOS] Permission for input monitoring granted.
+22:10:11.405: [macOS] Permission for screen capture granted.
+22:10:11.406: Command Line Arguments: --disable-updater --disable-shutdown-check --disable-missing-files-check
+22:10:11.406: CPU Name: Apple M1 (Virtual)
+22:10:11.406: Physical Cores: 3, Logical Cores: 3
+22:10:11.406: Physical Memory: 7168MB Total
+22:10:11.407: Model Identifier: VirtualMac2,1
+22:10:11.407: OS Name: macOS
+22:10:11.408: OS Version: Version 26.6.2 (Build 25G83)
+22:10:11.408: Rosetta translation used: false
+22:10:11.408: Kernel Version: 25.6.0
+22:10:11.416: hotkeys-cocoa: Using keyboard layout 'com.apple.keylayout.US'
+22:10:11.419: Current Date/Time: 2026-10-10, 22:10:11
+22:10:11.419: Browser Hardware Acceleration: true
+22:10:11.419: Qt Version: 6.11.1 (runtime), 6.11.1 (compiled)
+22:10:11.419: Portable mode: false
+22:10:12.057: OBS-Studio-Rust 0.1.0 (based on OBS 33.0.0-beta6-239-gad60c0e39 (mac))
+22:10:12.057: ---------------------------------
+22:10:12.062: ---------------------------------
+22:10:12.062: audio settings reset:
+22:10:12.062: 	samples per sec: 48000
+22:10:12.062: 	speakers:        2
+22:10:12.062: 	max buffering:   960 milliseconds
+22:10:12.062: 	buffering type:  dynamically increasing
+22:10:12.071: ---------------------------------
+22:10:12.071: Initializing OpenGL...
+22:10:12.229: Loading up OpenGL on adapter Apple Inc. Apple Software Renderer
+22:10:12.230: OpenGL loaded successfully, version 4.1 APPLE-23.1.1, shading language 4.10
+22:10:12.789: ---------------------------------
+22:10:12.789: video settings reset:
+22:10:12.789: 	base resolution:   1024x768
+22:10:12.789: 	output resolution: 1024x768
+22:10:12.789: 	downscale filter:  Bicubic
+22:10:12.789: 	fps:               30/1
+22:10:12.789: 	format:            NV12
+22:10:12.789: 	YUV mode:          Rec. 709/Partial
+22:10:12.789: NV12 texture support enabled
+22:10:12.789: P010 texture support not available
+22:10:12.791: Audio monitoring device:
+22:10:12.791: 	name: Default
+22:10:12.791: 	id: default
+22:10:12.821: No AJA devices found, skipping loading AJA plugin
+22:10:12.821: Failed to initialize module 'aja'
+22:10:12.848: No AJA devices found, skipping loading AJA UI plugin
+22:10:12.848: Failed to initialize module 'aja-output-ui'
+22:10:12.861: A DeckLink iterator could not be created.  The DeckLink drivers may not be installed
+22:10:12.861: Failed to initialize module 'decklink'
+22:10:12.866: Failed to load 'en-US' text for module: 'decklink-captions'
+22:10:12.872: Failed to load 'en-US' text for module: 'decklink-output-ui'
+22:10:13.407: [obs-browser]: Version 2.27.1
+22:10:13.407: [obs-browser]: CEF Version 150.0.7871.252 (runtime), 150.0.19+gcf60f42+chromium-150.0.7871.252 (compiled)
+22:10:13.544: [obs-websocket] [obs_module_load] you can haz websockets (Version: 5.7.5 | RPC Version: 1)
+22:10:13.544: [obs-websocket] [obs_module_load] Qt version (compile-time): 6.11.1 | Qt version (run-time): 6.11.1
+22:10:13.544: [obs-websocket] [obs_module_load] Linked ASIO Version: 103200
+22:10:13.546: [obs-websocket] [Config::Load] Existing configuration not found, using defaults.
+22:10:13.546: [obs-websocket] [Config::Load] (FirstLoad) Generating new server password.
+22:10:13.562: [obs-websocket] [obs_module_load] Module loaded.
+22:10:13.634: os_dlopen(/Applications/VLC.app/Contents/MacOS/lib/libvlccore.dylib->/Applications/VLC.app/Contents/MacOS/lib/libvlccore.dylib): dlopen(/Applications/VLC.app/Contents/MacOS/lib/libvlccore.dylib, 0x0106): tried: '/Applications/VLC.app/Contents/MacOS/lib/libvlccore.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OS/Applications/VLC.app/Contents/MacOS/lib/libvlccore.dylib' (no such file), '/Applications/VLC.app/Contents/MacOS/lib/libvlccore.dylib' (no such file)
+22:10:13.634: 
+22:10:13.634: [vlc-video]: Couldn't find VLC installation, VLC video source disabled
+22:10:13.634: ---------------------------------
+22:10:13.634: ---------------------------------
+22:10:13.634:   Loaded Modules:
+22:10:13.634:     vlc-video
+22:10:13.634:     text-freetype2
+22:10:13.635:     rtmp-services
+22:10:13.635:     obs-x264
+22:10:13.635:     obs-websocket
+22:10:13.635:     obs-webrtc
+22:10:13.635:     obs-vst
+22:10:13.635:     obs-transitions
+22:10:13.635:     obs-outputs
+22:10:13.635:     obs-filters
+22:10:13.635:     obs-ffmpeg
+22:10:13.635:     obs-browser
+22:10:13.635:     mac-virtualcam
+22:10:13.635:     mac-videotoolbox
+22:10:13.635:     mac-syphon
+22:10:13.635:     mac-capture
+22:10:13.635:     mac-avcapture
+22:10:13.635:     mac-avcapture-legacy
+22:10:13.635:     image-source
+22:10:13.635:     frontend-tools
+22:10:13.635:     decklink-output-ui
+22:10:13.635:     decklink-captions
+22:10:13.635:     coreaudio-encoder
+22:10:13.635: ---------------------------------
+22:10:13.635: [VideoToolbox encoder]: Added VideoToolbox encoders
+22:10:13.636: ---------------------------------
+22:10:13.636: Available Encoders:
+22:10:13.636:   Video Encoders:
+22:10:13.637: 	- ffmpeg_aom_av1 (AOM AV1)
+22:10:13.637: 	- obs_x264 (x264)
+22:10:13.637: 	- com.apple.videotoolbox.videoencoder.prores-422 (Apple VT ProRes Software Encoder)
+22:10:13.637: 	- com.apple.videotoolbox.videoencoder.h264 (Apple VT H264 Software Encoder)
+22:10:13.637: 	- paravirtualized:com.apple.videotoolbox.videoencoder.ave.avc (paravirtualized:Apple Video Encoder - AVC family)
+22:10:13.637: 	- com.apple.videotoolbox.videoencoder.hevc.vcp (Apple VT HEVC Software Encoder)
+22:10:13.637: 	- paravirtualized:com.apple.videotoolbox.videoencoder.ave.hevc (paravirtualized:Apple Video Encoder - HEVC family)
+22:10:13.637:   Audio Encoders:
+22:10:13.637: 	- CoreAudio_AAC (CoreAudio AAC)
+22:10:13.637: 	- ffmpeg_aac (FFmpeg AAC)
+22:10:13.637: 	- ffmpeg_opus (FFmpeg Opus)
+22:10:13.637: 	- ffmpeg_pcm_s16le (FFmpeg PCM (16-bit))
+22:10:13.637: 	- ffmpeg_pcm_s24le (FFmpeg PCM (24-bit))
+22:10:13.637: 	- ffmpeg_pcm_f32le (FFmpeg PCM (32-bit float))
+22:10:13.637: 	- ffmpeg_alac (FFmpeg ALAC (24-bit))
+22:10:13.637: 	- ffmpeg_flac (FFmpeg FLAC (16-bit))
+22:10:13.637: ==== Startup complete ===============================================
+22:10:13.746: No scene file found, creating default scene
+22:10:13.823: All scene data cleared
+22:10:13.823: ------------------------------------------------
+22:10:13.833: Switched to scene 'Scene'
+22:10:13.834: Created scene collection 'Untitled' (clean, Untitled.json)
+22:10:13.834: ------------------------------------------------
+22:10:15.425: [mac-virtualcam] mac-camera-extension: OSSystemExtensionErrorCode 2 ("Missing entitlement com.apple.developer.system-extension.install")

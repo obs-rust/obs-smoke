@@ -1,0 +1,116 @@
+22:05:07.313: Command Line Arguments: --disable-updater --disable-shutdown-check --disable-missing-files-check
+22:05:07.323: CPU Name: AMD EPYC 7763 64-Core Processor                
+22:05:07.323: CPU Speed: 2445MHz
+22:05:07.323: Physical Cores: 2, Logical Cores: 4
+22:05:07.323: Physical Memory: 16378MB Total, 13760MB Free
+22:05:07.323: Windows Version: 10.0 Build 26100 (release: 24H2; revision: 33438; 64-bit)
+22:05:07.324: Running as administrator: true
+22:05:07.324: Windows 10/11 Gaming Features:
+22:05:07.324: 	Game Mode: Probably On (no reg key set)
+22:05:07.325: Current Date/Time: 2026-10-10, 22:05:07
+22:05:07.328: Browser Hardware Acceleration: true
+22:05:07.328: Hide OBS windows from screen capture: false
+22:05:07.328: Qt Version: 6.11.1 (runtime), 6.11.1 (compiled)
+22:05:07.328: Portable mode: false
+22:05:10.149: OBS-Studio-Rust 0.1.0 (based on OBS 33.0.0-beta6-239-gad60c0e39 (64-bit, windows))
+22:05:10.149: ---------------------------------
+22:05:10.153: ---------------------------------
+22:05:10.153: audio settings reset:
+22:05:10.153: 	samples per sec: 48000
+22:05:10.153: 	speakers:        2
+22:05:10.153: 	max buffering:   960 milliseconds
+22:05:10.153: 	buffering type:  dynamically increasing
+22:05:10.155: ---------------------------------
+22:05:10.156: Initializing D3D11...
+22:05:10.156: Available Video Adapters: 
+22:05:10.161: Loading up D3D11 on adapter Microsoft Basic Render Driver (0)
+22:05:10.163: D3D11 loaded successfully, feature level used: b000
+22:05:10.164: DXGI increase maximum frame latency success
+22:05:11.738: ---------------------------------
+22:05:11.739: video settings reset:
+22:05:11.739: 	base resolution:   1024x768
+22:05:11.739: 	output resolution: 1024x768
+22:05:11.739: 	downscale filter:  Bicubic
+22:05:11.739: 	fps:               30/1
+22:05:11.739: 	format:            NV12
+22:05:11.739: 	YUV mode:          Rec. 709/Partial
+22:05:11.739: NV12 texture support not available
+22:05:11.739: P010 texture support not available
+22:05:11.739: Audio monitoring device:
+22:05:11.739: 	name: Default
+22:05:11.739: 	id: default
+22:05:11.755: No AJA devices found, skipping loading AJA plugin
+22:05:11.755: Failed to initialize module 'aja.dll'
+22:05:11.757: No AJA devices found, skipping loading AJA UI plugin
+22:05:11.757: Failed to initialize module 'aja-output-ui.dll'
+22:05:11.758: [CoreAudio encoder]: CoreAudio AAC encoder not installed on the system or couldn't be loaded
+22:05:11.762: A DeckLink iterator could not be created.  The DeckLink drivers may not be installed
+22:05:11.762: Failed to initialize module 'decklink.dll'
+22:05:11.763: Failed to load 'en-US' text for module: 'decklink-captions.dll'
+22:05:11.764: Failed to load 'en-US' text for module: 'decklink-output-ui.dll'
+22:05:11.779: Failed to get C:\Program Files\NVIDIA Corporation\NVIDIA Audio Effects SDK\NVAudioEffects.dll version info size
+22:05:11.779: [NVIDIA Audio Effects:] NVIDIA denoiser disabled, redistributable not found or could not be loaded.
+22:05:11.779: Failed to get C:\Program Files\NVIDIA Corporation\NVIDIA Video Effects\NVVideoEffects.dll version info size
+22:05:11.779: [NVIDIA VIDEO FX]: FX disabled, redistributable not found or could not be loaded.
+22:05:11.810: [obs-browser]: Version 2.27.1
+22:05:11.810: [obs-browser]: CEF Version 150.0.7871.252 (runtime), 150.0.20-7871-devtools_patch.3553+gc4b3522+chromium-150.0.7871.252 (compiled)
+22:05:11.810: [obs-browser]: Blacklisted device detected, disabling browser source hardware acceleration.
+22:05:11.845: LoadLibrary failed for 'nvEncodeAPI64.dll': The specified module could not be found.
+22:05:11.845:  (126)
+22:05:11.845: NVENC not supported
+22:05:11.845: Failed to initialize module 'obs-nvenc.dll'
+22:05:11.913: [obs-websocket] [obs_module_load] you can haz websockets (Version: 5.7.5 | RPC Version: 1)
+22:05:11.913: [obs-websocket] [obs_module_load] Qt version (compile-time): 6.11.1 | Qt version (run-time): 6.11.1
+22:05:11.913: [obs-websocket] [obs_module_load] Linked ASIO Version: 103200
+22:05:11.914: [obs-websocket] [Config::Load] Existing configuration not found, using defaults.
+22:05:11.914: [obs-websocket] [Config::Load] (FirstLoad) Generating new server password.
+22:05:11.922: [obs-websocket] [obs_module_load] Module loaded.
+22:05:11.929: [vlc-video]: Couldn't find VLC installation, VLC video source disabled
+22:05:11.967: ---------------------------------
+22:05:11.968: ---------------------------------
+22:05:11.968:   Loaded Modules:
+22:05:11.968:     win-wasapi.dll
+22:05:11.968:     win-dshow.dll
+22:05:11.968:     win-capture.dll
+22:05:11.968:     vlc-video.dll
+22:05:11.968:     text-freetype2.dll
+22:05:11.968:     rtmp-services.dll
+22:05:11.968:     obs-x264.dll
+22:05:11.968:     obs-websocket.dll
+22:05:11.968:     obs-webrtc.dll
+22:05:11.968:     obs-vst.dll
+22:05:11.968:     obs-transitions.dll
+22:05:11.968:     obs-text.dll
+22:05:11.968:     obs-qsv11.dll
+22:05:11.968:     obs-outputs.dll
+22:05:11.968:     obs-filters.dll
+22:05:11.968:     obs-ffmpeg.dll
+22:05:11.968:     obs-browser.dll
+22:05:11.968:     nv-filters.dll
+22:05:11.968:     image-source.dll
+22:05:11.968:     frontend-tools.dll
+22:05:11.968:     decklink-output-ui.dll
+22:05:11.968:     decklink-captions.dll
+22:05:11.968:     coreaudio-encoder.dll
+22:05:11.968: ---------------------------------
+22:05:11.972: ---------------------------------
+22:05:11.973: Available Encoders:
+22:05:11.973:   Video Encoders:
+22:05:11.973: 	- ffmpeg_svt_av1 (SVT-AV1)
+22:05:11.973: 	- ffmpeg_aom_av1 (AOM AV1)
+22:05:11.973: 	- obs_x264 (x264)
+22:05:11.973:   Audio Encoders:
+22:05:11.973: 	- ffmpeg_aac (FFmpeg AAC)
+22:05:11.973: 	- ffmpeg_opus (FFmpeg Opus)
+22:05:11.973: 	- ffmpeg_pcm_s16le (FFmpeg PCM (16-bit))
+22:05:11.973: 	- ffmpeg_pcm_s24le (FFmpeg PCM (24-bit))
+22:05:11.973: 	- ffmpeg_pcm_f32le (FFmpeg PCM (32-bit float))
+22:05:11.973: 	- ffmpeg_alac (FFmpeg ALAC (24-bit))
+22:05:11.973: 	- ffmpeg_flac (FFmpeg FLAC (16-bit))
+22:05:11.973: ==== Startup complete ===============================================
+22:05:11.981: No scene file found, creating default scene
+22:05:12.034: All scene data cleared
+22:05:12.034: ------------------------------------------------
+22:05:12.051: Switched to scene 'Scene'
+22:05:12.051: Created scene collection 'Untitled' (clean, Untitled.json)
+22:05:12.051: ------------------------------------------------

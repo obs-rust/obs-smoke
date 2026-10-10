@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "generated_at": "2026-10-10T22:10:46+00:00",
+  "rust_libobs": true,
+  "status": "pass",
+  "target": {
+    "requested": "main",
+    "kind": "main",
+    "repo": "obs-rust/obs-studio",
+    "ref": "master",
+    "sha": "ad60c0e39dc3ffe8ee59c215930eac55c19e1977",
+    "source_url": "https://github.com/obs-rust/obs-studio/commit/ad60c0e39dc3ffe8ee59c215930eac55c19e1977"
+  },
+  "run": {
+    "id": "38088731438",
+    "url": "https://github.com/obs-rust/obs-smoke/actions/runs/38088731438",
+    "commit": "59a2023c621e5d2261cbb504796ad48e3aea7352",
+    "trigger": "workflow_dispatch"
+  },
+  "platforms": [
+    {
+      "os": "windows",
+      "arch": "AMD64",
+      "runner": "GitHub Actions 1000004710",
+      "runner_image": "win25-vs2026",
+      "status": "pass",
+      "startup_complete": true,
+      "startup_seconds": 5.03,
+      "alive_at_screenshot": true,
+      "product": "OBS-Studio-Rust",
+      "obs_version": "0.1.0",
+      "base_version": "33.0.0-beta6-239-gad60c0e39",
+      "screenshot": "windows.png",
+      "log": "logs/windows.log",
+      "error": null,
+      "rust_libobs": true,
+      "libobs_file": "obs.dll",
+      "built_sha": "ad60c0e39dc3ffe8ee59c215930eac55c19e1977"
+    },
+    {
+      "os": "macos",
+      "arch": "arm64",
+      "runner": "GitHub Actions 1000004759",
+      "runner_image": "macos26",
+      "status": "pass",
+      "startup_complete": true,
+      "startup_seconds": 4.44,
+      "alive_at_screenshot": true,
+      "product": "OBS-Studio-Rust",
+      "obs_version": "0.1.0",
+      "base_version": "33.0.0-beta6-239-gad60c0e39",
+      "screenshot": "macos.png",
+      "log": "logs/macos.log",
+      "error": null,
+      "rust_libobs": true,
+      "libobs_file": "libobs",
+      "built_sha": "ad60c0e39dc3ffe8ee59c215930eac55c19e1977"
+    },
+    {
+      "os": "linux",
+      "arch": "x86_64",
+      "runner": "GitHub Actions 1000004711",
+      "runner_image": "ubuntu26",
+      "status": "pass",
+      "startup_complete": true,
+      "startup_seconds": 2.0,
+      "alive_at_screenshot": true,
+      "product": "OBS-Studio-Rust",
+      "obs_version": "0.1.0",
+      "base_version": "33.0.0-beta6-239-gad60c0e39",
+      "screenshot": "linux.png",
+      "log": "logs/linux.log",
+      "error": null,
+      "rust_libobs": true,
+      "libobs_file": "libobs.so.30",
+      "built_sha": "ad60c0e39dc3ffe8ee59c215930eac55c19e1977"
+    }
+  ]
+}
