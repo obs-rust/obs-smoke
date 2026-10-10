@@ -95,7 +95,12 @@ jobs:
 
       - name: Select Xcode
         if: matrix.os == 'macos'
-        run: sudo xcode-select --switch /Applications/Xcode_26.5.app/Contents/Developer
+        run: |
+          sudo xcode-select --switch /Applications/Xcode_26.5.app/Contents/Developer
+          # The macOS CI preset points Xcode's compilation cache at $XCODE_CAS_PATH.
+          cas="$HOME/Library/Developer/Xcode/DerivedData/CompilationCache.noindex"
+          mkdir -p "$cas"
+          echo "XCODE_CAS_PATH=$cas" >> "$GITHUB_ENV"
 
       # Corrosion runs cargo inside the CMake build; same setup as the fork's CI.
       - name: Set up soldr
