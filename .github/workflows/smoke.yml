@@ -1,0 +1,249 @@
+name: Smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "What to test: 'main' (latest green obs-rust/obs-studio master build), a release tag (e.g. 32.2.2), or 'latest' (newest release)"
+        required: false
+        default: main
+      release_repo:
+        description: "Repository that publishes releases (only used for release tags)"
+        required: false
+        default: obsproject/obs-studio
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke
+  cancel-in-progress: false
+
+env:
+  SOURCE_REPO: obs-rust/obs-studio
+  SOURCE_BRANCH: master
+  SOURCE_WORKFLOW: push.yaml
+  RESULTS_BRANCH: smoke-results
+
+jobs:
+  resolve:
+    name: Resolve target
+    runs-on: ubuntu-latest
+    outputs:
+      kind: ${{ steps.r.outputs.kind }}
+      repo: ${{ steps.r.outputs.repo }}
+      ref: ${{ steps.r.outputs.ref }}
+      sha: ${{ steps.r.outputs.sha }}
+      run_id: ${{ steps.r.outputs.run_id }}
+      source_url: ${{ steps.r.outputs.source_url }}
+    steps:
+      - id: r
+        env:
+          GH_TOKEN: ${{ secrets.OBS_ARTIFACT_TOKEN || github.token }}
+          TARGET: ${{ inputs.target || 'main' }}
+          RELEASE_REPO: ${{ inputs.release_repo || 'obsproject/obs-studio' }}
+        run: |
+          set -euo pipefail
+          case "$TARGET" in
+            main|master)
+              read -r run_id sha < <(gh run list -R "$SOURCE_REPO" -w "$SOURCE_WORKFLOW" -b "$SOURCE_BRANCH" \
+                -s success -L 1 --json databaseId,headSha --jq '.[0] | "\(.databaseId) \(.headSha)"')
+              {
+                echo "kind=main"
+                echo "repo=$SOURCE_REPO"
+                echo "ref=$SOURCE_BRANCH"
+                echo "sha=$sha"
+                echo "run_id=$run_id"
+                echo "source_url=https://github.com/$SOURCE_REPO/actions/runs/$run_id"
+              } >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              if [ "$TARGET" = latest ]; then
+                tag=$(gh release view -R "$RELEASE_REPO" --json tagName --jq .tagName)
+              else
+                tag=$(gh release view "$TARGET" -R "$RELEASE_REPO" --json tagName --jq .tagName)
+              fi
+              sha=$(gh api "repos/$RELEASE_REPO/commits/$tag" --jq .sha)
+              {
+                echo "kind=release"
+                echo "repo=$RELEASE_REPO"
+                echo "ref=$tag"
+                echo "sha=$sha"
+                echo "run_id="
+                echo "source_url=https://github.com/$RELEASE_REPO/releases/tag/$tag"
+              } >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+          cat "$GITHUB_OUTPUT"
+
+  smoke:
+    name: Smoke (${{ matrix.os }})
+    needs: resolve
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows
+            runner: windows-2025
+            artifact: obs-studio-windows-x64
+            release_asset: "*-Windows-x64.zip"
+          - os: macos
+            runner: macos-26
+            artifact: obs-studio-macos-arm64
+            release_asset: "*-macOS-Apple.dmg"
+          - os: linux
+            runner: ubuntu-26.04
+            artifact: obs-studio-ubuntu-26.04-x86_64
+            release_asset: "*-Ubuntu-26.04-x86_64.deb"
+    runs-on: ${{ matrix.runner }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download OBS
+        env:
+          GH_TOKEN: ${{ secrets.OBS_ARTIFACT_TOKEN || github.token }}
+          KIND: ${{ needs.resolve.outputs.kind }}
+          REPO: ${{ needs.resolve.outputs.repo }}
+          REF: ${{ needs.resolve.outputs.ref }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+          RUN_ID: ${{ needs.resolve.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p dl
+          if [ "$KIND" = main ]; then
+            gh run download "$RUN_ID" -R "$REPO" -n "${{ matrix.artifact }}-${SHA:0:9}" -D dl
+          else
+            gh release download "$REF" -R "$REPO" -p "${{ matrix.release_asset }}" -D dl
+          fi
+          ls -la dl
+
+      - name: Install OBS (Linux)
+        if: matrix.os == 'linux'
+        run: |
+          set -euo pipefail
+          sudo apt-get update -q
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
+            "$(ls "$PWD"/dl/*.deb | grep -v dbgsym | head -1)" \
+            xvfb xauth imagemagick dbus-x11 libgl1-mesa-dri mesa-utils
+          echo "OBS_EXE=$(command -v obs)" >> "$GITHUB_ENV"
+
+      - name: Install OBS (macOS)
+        if: matrix.os == 'macos'
+        run: |
+          set -euo pipefail
+          dmg=$(ls dl/*.dmg | head -1)
+          hdiutil attach -nobrowse -readonly -mountpoint /tmp/obsdmg "$dmg"
+          app=$(ls -d /tmp/obsdmg/*.app | head -1)
+          cp -R "$app" "$HOME/OBS.app"
+          hdiutil detach /tmp/obsdmg
+          xattr -cr "$HOME/OBS.app"
+          echo "OBS_EXE=$HOME/OBS.app/Contents/MacOS/OBS" >> "$GITHUB_ENV"
+
+      - name: Install OBS (Windows)
+        if: matrix.os == 'windows'
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/obs"
+          unzip -q "$(ls dl/*.zip | head -1)" -d "$RUNNER_TEMP/obs"
+          exe=$(find "$RUNNER_TEMP/obs" -name obs64.exe | head -1)
+          echo "OBS_EXE=$(cygpath -w "$exe")" >> "$GITHUB_ENV"
+
+      - name: Run OBS and screenshot
+        run: |
+          set -euo pipefail
+          if [ "${{ matrix.os }}" = linux ]; then
+            LIBGL_ALWAYS_SOFTWARE=1 QT_QPA_PLATFORM=xcb xvfb-run -a -s "-screen 0 1920x1080x24" \
+              dbus-run-session -- python3 scripts/run_obs.py --os linux --exe "$OBS_EXE" --out out
+          else
+            python scripts/run_obs.py --os "${{ matrix.os }}" --exe "$OBS_EXE" --out out
+          fi
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: smoke-${{ matrix.os }}
+          path: out/
+          if-no-files-found: warn
+
+  publish:
+    name: Publish results
+    needs: [resolve, smoke]
+    if: always() && needs.resolve.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: smoke-*
+          path: in
+
+      - name: Aggregate results
+        env:
+          SMOKE_TARGET: ${{ inputs.target || 'main' }}
+          SMOKE_KIND: ${{ needs.resolve.outputs.kind }}
+          SMOKE_REPO: ${{ needs.resolve.outputs.repo }}
+          SMOKE_REF: ${{ needs.resolve.outputs.ref }}
+          SMOKE_SHA: ${{ needs.resolve.outputs.sha }}
+          SMOKE_SOURCE_URL: ${{ needs.resolve.outputs.source_url }}
+        run: |
+          set -euo pipefail
+          python3 scripts/aggregate.py in results
+          sudo apt-get install -y -q imagemagick >/dev/null
+          shots=()
+          for os in windows macos linux; do
+            if [ -f "results/$os.png" ]; then
+              shots+=("results/$os.png")
+            else
+              convert -size 1280x800 xc:'#222' -fill '#f85149' -pointsize 48 -gravity center \
+                -annotate 0 "$os: no screenshot" "results/$os-missing.png"
+              shots+=("results/$os-missing.png")
+            fi
+          done
+          montage "${shots[@]}" -tile 3x1 -geometry 1280x800+8+8 -background '#111214' results/smoke.png
+          rm -f results/*-missing.png
+
+      - name: Push to results branch
+        run: |
+          set -euo pipefail
+          cd results
+          git init -q -b "$RESULTS_BRANCH"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          cat > README.md <<EOF
+          # Latest smoke run
+
+          Overwritten by every run of the [Smoke workflow](https://github.com/${GITHUB_REPOSITORY}/actions/workflows/smoke.yml).
+          Code lives on \`main\`. See \`results.json\` for the structured data.
+
+          ![OBS smoke screenshots](smoke.png)
+          EOF
+          git add -A
+          git commit -q -m "Smoke results for run ${GITHUB_RUN_ID}"
+          git push -f "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" "HEAD:$RESULTS_BRANCH"
+
+      - name: Build site
+        run: python3 scripts/build_site.py results site
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - id: deploy
+        uses: actions/deploy-pages@v4
+
+      - name: Fail if any platform failed
+        run: |
+          status=$(python3 -c 'import json;print(json.load(open("results/results.json"))["status"])')
+          echo "Overall: $status"
+          [ "$status" = pass ]
