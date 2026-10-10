@@ -38,7 +38,7 @@ def config_dir(os_name: str) -> Path:
 def seed_config(cfg: Path) -> None:
     """Skip the first-run auto-configuration wizard and update checks."""
     cfg.mkdir(parents=True, exist_ok=True)
-    general = "[General]\nFirstRun=true\nEnableAutoUpdates=false\nInfoIncrement=-1\n"
+    general = "[General]\nFirstRun=true\nEnableAutoUpdates=false\nInfoIncrement=-1\nMacOSPermissionsDialogLastShown=99\n"
     for name in ("global.ini", "user.ini"):
         (cfg / name).write_text(general)
 
