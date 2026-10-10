@@ -52,12 +52,13 @@ footer a {{ color:inherit; }}
 </head>
 <body>
 <main>
-<h1>OBS Studio smoke tests <span class="badge {status}">{status_text}</span></h1>
+<h1>OBS Rust smoke tests <span class="badge {status}">{status_text}</span></h1>
 <p class="meta">Target <strong>{target}</strong> · {source} · run <a href="{run_url}">#{run_id}</a> · {generated}</p>
 <div class="grid">
 {cards}
 </div>
-<footer>Raw data: <a href="results.json">results.json</a> · Each platform launches OBS, waits for
+<footer>Raw data: <a href="results.json">results.json</a> · Each platform builds obs-rust/obs-studio with
+ENABLE_RUST_LIBOBS=ON, checks that Rust code is linked into libobs, launches OBS, waits for
 "Startup complete" in the OBS log, then screenshots the desktop while OBS is still running.</footer>
 </main>
 </body>
@@ -70,6 +71,7 @@ CARD = """<section class="card">
 <h2>{label} <span class="badge {status}">{status_text}</span></h2>
 <dl>
 <dt>OBS version</dt><dd>{version}</dd>
+<dt>Rust libobs</dt><dd>{rust}</dd>
 <dt>Startup</dt><dd>{startup}</dd>
 <dt>Runner</dt><dd>{runner}</dd>
 <dt>Log</dt><dd>{log}</dd>
@@ -106,6 +108,7 @@ def main() -> int:
                 status=p["status"],
                 status_text=p["status"].upper(),
                 version=esc(p.get("obs_version")),
+                rust={True: "yes", False: "NO"}.get(p.get("rust_libobs"), "—"),
                 startup=f"{secs:.1f} s" if isinstance(secs, (int, float)) else "—",
                 runner=esc(" ".join(filter(None, [p.get("runner_image"), p.get("arch")]))),
                 log=f'<a href="{esc(p["log"])}">{esc(p["log"])}</a>' if p.get("log") else "—",
@@ -114,13 +117,10 @@ def main() -> int:
         )
 
     t = data["target"]
-    if t.get("kind") == "release":
-        source = f'<a href="{esc(t["source_url"])}">{esc(t["repo"])} release {esc(t["ref"])}</a>'
-    else:
-        source = (
+    source = (
             f'<a href="{esc(t["source_url"])}">{esc(t["repo"])}@{esc(t["ref"])} '
             f'{esc((t.get("sha") or "")[:10])}</a>'
-        )
+    )
     (dst / "index.html").write_text(
         PAGE.format(
             status=data["status"],

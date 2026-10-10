@@ -4,13 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       target:
-        description: "What to test: 'main' (latest green obs-rust/obs-studio master build), a release tag (e.g. 32.2.2), or 'latest' (newest release)"
+        description: "obs-rust/obs-studio ref to build and test: 'main' (master HEAD), a release tag (e.g. 32.2.2), a branch or a commit SHA"
         required: false
         default: main
-      release_repo:
-        description: "Repository that publishes releases (only used for release tags)"
-        required: false
-        default: obsproject/obs-studio
 
 permissions:
   contents: read
@@ -21,8 +17,6 @@ concurrency:
 
 env:
   SOURCE_REPO: obs-rust/obs-studio
-  SOURCE_BRANCH: master
-  SOURCE_WORKFLOW: push.yaml
   RESULTS_BRANCH: smoke-results
 
 jobs:
@@ -34,67 +28,135 @@ jobs:
       repo: ${{ steps.r.outputs.repo }}
       ref: ${{ steps.r.outputs.ref }}
       sha: ${{ steps.r.outputs.sha }}
-      run_id: ${{ steps.r.outputs.run_id }}
       source_url: ${{ steps.r.outputs.source_url }}
     steps:
       - id: r
         env:
-          GH_TOKEN: ${{ secrets.OBS_ARTIFACT_TOKEN || github.token }}
+          GH_TOKEN: ${{ github.token }}
           TARGET: ${{ inputs.target || 'main' }}
-          RELEASE_REPO: ${{ inputs.release_repo || 'obsproject/obs-studio' }}
         run: |
           set -euo pipefail
           case "$TARGET" in
-            main|master)
-              read -r run_id sha < <(gh run list -R "$SOURCE_REPO" -w "$SOURCE_WORKFLOW" -b "$SOURCE_BRANCH" \
-                -s success -L 1 --json databaseId,headSha --jq '.[0] | "\(.databaseId) \(.headSha)"')
-              {
-                echo "kind=main"
-                echo "repo=$SOURCE_REPO"
-                echo "ref=$SOURCE_BRANCH"
-                echo "sha=$sha"
-                echo "run_id=$run_id"
-                echo "source_url=https://github.com/$SOURCE_REPO/actions/runs/$run_id"
-              } >> "$GITHUB_OUTPUT"
-              ;;
-            *)
-              if [ "$TARGET" = latest ]; then
-                tag=$(gh release view -R "$RELEASE_REPO" --json tagName --jq .tagName)
-              else
-                tag=$(gh release view "$TARGET" -R "$RELEASE_REPO" --json tagName --jq .tagName)
-              fi
-              sha=$(gh api "repos/$RELEASE_REPO/commits/$tag" --jq .sha)
-              {
-                echo "kind=release"
-                echo "repo=$RELEASE_REPO"
-                echo "ref=$tag"
-                echo "sha=$sha"
-                echo "run_id="
-                echo "source_url=https://github.com/$RELEASE_REPO/releases/tag/$tag"
-              } >> "$GITHUB_OUTPUT"
-              ;;
+            main|master) ref=master; kind=main ;;
+            *) ref="$TARGET"
+               if gh api "repos/$SOURCE_REPO/git/ref/tags/$ref" >/dev/null 2>&1; then kind=release; else kind=ref; fi ;;
           esac
+          sha=$(gh api "repos/$SOURCE_REPO/commits/$ref" --jq .sha)
+          {
+            echo "kind=$kind"
+            echo "repo=$SOURCE_REPO"
+            echo "ref=$ref"
+            echo "sha=$sha"
+            echo "source_url=https://github.com/$SOURCE_REPO/commit/$sha"
+          } >> "$GITHUB_OUTPUT"
           cat "$GITHUB_OUTPUT"
 
-  smoke:
-    name: Smoke (${{ matrix.os }})
+  build:
+    name: Build Rust OBS (${{ matrix.os }})
     needs: resolve
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: windows
-            runner: windows-2025
-            artifact: obs-studio-windows-x64
-            release_asset: "*-Windows-x64.zip"
+            runner: windows-2025-vs2026
+            target: x64
           - os: macos
             runner: macos-26
-            artifact: obs-studio-macos-arm64
-            release_asset: "*-macOS-Apple.dmg"
+            target: arm64
           - os: linux
             runner: ubuntu-26.04
-            artifact: obs-studio-ubuntu-26.04-x86_64
-            release_asset: "*-Ubuntu-26.04-x86_64.deb"
+            target: x86_64
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out obs-rust/obs-studio
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ needs.resolve.outputs.repo }}
+          ref: ${{ needs.resolve.outputs.sha }}
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Check out obs-smoke
+        uses: actions/checkout@v4
+        with:
+          path: .obs-smoke
+
+      # The fork's full builds leave ENABLE_RUST_LIBOBS at its default (OFF).
+      # Flip the default so the ported libobs internals come from Rust.
+      - name: Enable Rust libobs
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i.bak 's/option(ENABLE_RUST_LIBOBS \(".*"\) OFF)/option(ENABLE_RUST_LIBOBS \1 ON)/' libobs/CMakeLists.txt
+          rm libobs/CMakeLists.txt.bak
+          grep -n 'option(ENABLE_RUST_LIBOBS' libobs/CMakeLists.txt | grep -q ' ON)'
+          git update-index --assume-unchanged libobs/CMakeLists.txt
+
+      - name: Select Xcode
+        if: matrix.os == 'macos'
+        run: sudo xcode-select --switch /Applications/Xcode_26.5.app/Contents/Developer
+
+      # Corrosion runs cargo inside the CMake build; same setup as the fork's CI.
+      - name: Set up soldr
+        uses: zackees/setup-soldr@0f223ac68e97fccaaeab026ef1861e5bf73639ac # v0.9.85
+        with:
+          version: 0.9.31
+          shims: true
+
+      - name: Build OBS Studio
+        uses: ./.github/actions/build-obs
+        with:
+          target: ${{ matrix.target }}
+          config: RelWithDebInfo
+
+      - name: Package OBS Studio
+        uses: ./.github/actions/package-obs
+        with:
+          target: ${{ matrix.target }}
+          config: RelWithDebInfo
+          package: ${{ matrix.os != 'windows' }}
+
+      - name: Collect package and verify Rust is linked
+        shell: bash
+        env:
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p pkg
+          case "${{ matrix.os }}" in
+            windows) cp build_x64/obs-studio-*-windows-x64.zip pkg/ ;;
+            macos)   cp build_macos/obs-studio-*-macos-apple.dmg pkg/ ;;
+            linux)   cp $(ls build_ubuntu/obs-studio-*-x86_64-ubuntu-gnu.deb) pkg/ ;;
+          esac
+          lib=$(find build_* \( -name obs.dll -o -name 'libobs.so*' -o -path '*libobs.framework/Versions/A/libobs' \) -type f | head -1)
+          echo "libobs: $lib"
+          if grep -a -q '/rustc/' "$lib"; then rust=true; else rust=false; fi
+          echo "Rust code linked into libobs: $rust"
+          printf '{"rust_libobs": %s, "libobs_file": "%s", "built_sha": "%s"}\n' "$rust" "$(basename "$lib")" "$SHA" > pkg/build-info.json
+          ls -la pkg
+          [ "$rust" = true ]
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: obs-rust-${{ matrix.os }}
+          path: pkg/
+          retention-days: 14
+
+  smoke:
+    name: Smoke (${{ matrix.os }})
+    needs: build
+    if: always() && needs.build.result != 'cancelled'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows
+            runner: windows-2025
+          - os: macos
+            runner: macos-26
+          - os: linux
+            runner: ubuntu-26.04
     runs-on: ${{ matrix.runner }}
     defaults:
       run:
@@ -102,23 +164,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download OBS
-        env:
-          GH_TOKEN: ${{ secrets.OBS_ARTIFACT_TOKEN || github.token }}
-          KIND: ${{ needs.resolve.outputs.kind }}
-          REPO: ${{ needs.resolve.outputs.repo }}
-          REF: ${{ needs.resolve.outputs.ref }}
-          SHA: ${{ needs.resolve.outputs.sha }}
-          RUN_ID: ${{ needs.resolve.outputs.run_id }}
+      - name: Download OBS build
+        id: dl
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: obs-rust-${{ matrix.os }}
+          path: dl
+
+      - name: Record missing build
+        if: steps.dl.outcome != 'success'
         run: |
-          set -euo pipefail
-          mkdir -p dl
-          if [ "$KIND" = main ]; then
-            gh run download "$RUN_ID" -R "$REPO" -n "${{ matrix.artifact }}-${SHA:0:9}" -D dl
-          else
-            gh release download "$REF" -R "$REPO" -p "${{ matrix.release_asset }}" -D dl
-          fi
-          ls -la dl
+          mkdir -p out
+          printf '{"os": "${{ matrix.os }}", "status": "fail", "error": "Rust OBS build failed; nothing to run"}\n' > out/result.json
+          exit 1
 
       - name: Install OBS (Linux)
         if: matrix.os == 'linux'
@@ -126,7 +185,7 @@ jobs:
           set -euo pipefail
           sudo apt-get update -q
           sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -q \
-            "$(ls "$PWD"/dl/*.deb | grep -v dbgsym | head -1)" \
+            "$(ls "$PWD"/dl/*.deb | head -1)" \
             xvfb xauth imagemagick dbus-x11 libgl1-mesa-dri mesa-utils
           echo "OBS_EXE=$(command -v obs)" >> "$GITHUB_ENV"
 
@@ -160,6 +219,7 @@ jobs:
           else
             python scripts/run_obs.py --os "${{ matrix.os }}" --exe "$OBS_EXE" --out out
           fi
+          cp dl/build-info.json out/
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -170,7 +230,7 @@ jobs:
 
   publish:
     name: Publish results
-    needs: [resolve, smoke]
+    needs: [resolve, build, smoke]
     if: always() && needs.resolve.result == 'success'
     runs-on: ubuntu-latest
     permissions:

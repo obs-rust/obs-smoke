@@ -29,6 +29,9 @@ def main() -> int:
     found: dict[str, dict] = {}
     for rj in src.glob("*/result.json"):
         r = json.loads(rj.read_text())
+        info = rj.parent / "build-info.json"
+        if info.exists():
+            r.update(json.loads(info.read_text()))
         for name in (r.get("screenshot"), r.get("log")):
             if name and (rj.parent / name).exists():
                 sub = "logs" if name.endswith(".log") else ""
@@ -37,6 +40,10 @@ def main() -> int:
             r["log"] = f"logs/{r['log']}"
         found[r["os"]] = r
 
+    for r in found.values():
+        if r.get("status") == "pass" and r.get("rust_libobs") is not True:
+            r["status"] = "fail"
+            r["error"] = "OBS started, but the build has no Rust code in libobs"
     platforms = [
         found.get(p, {"os": p, "status": "fail", "error": "smoke job produced no result"}) for p in PLATFORMS
     ]
@@ -45,6 +52,7 @@ def main() -> int:
     results = {
         "schema": 1,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "rust_libobs": all(p.get("rust_libobs") is True for p in platforms),
         "status": "pass" if all(p["status"] == "pass" for p in platforms) else "fail",
         "target": {
             "requested": env.get("SMOKE_TARGET", ""),

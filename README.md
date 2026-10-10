@@ -2,9 +2,10 @@
 
 [![Smoke](https://github.com/obs-rust/obs-smoke/actions/workflows/smoke.yml/badge.svg)](https://github.com/obs-rust/obs-smoke/actions/workflows/smoke.yml)
 
-Proves OBS Studio starts on **Windows, macOS and Linux**: each platform installs a
-build, launches OBS, waits for `==== Startup complete` in the OBS log and takes a
-desktop screenshot while OBS is still running.
+Proves the **Rust build of OBS** ([obs-rust/obs-studio](https://github.com/obs-rust/obs-studio)) starts on
+**Windows, macOS and Linux**. Each platform builds the fork with `ENABLE_RUST_LIBOBS=ON`, checks that Rust
+code is linked into libobs, installs the package, launches OBS, waits for `==== Startup complete` in the OBS
+log and takes a desktop screenshot while OBS is still running. Upstream OBS builds are never used.
 
 **Latest results:** https://obs-rust.github.io/obs-smoke/
 
@@ -15,17 +16,18 @@ desktop screenshot while OBS is still running.
 Actions → **Smoke** → *Run workflow*, or:
 
 ```sh
-gh workflow run smoke.yml -R obs-rust/obs-smoke                     # latest green obs-rust/obs-studio master build
-gh workflow run smoke.yml -R obs-rust/obs-smoke -f target=32.2.2    # a release tag
-gh workflow run smoke.yml -R obs-rust/obs-smoke -f target=latest    # newest release
+gh workflow run smoke.yml -R obs-rust/obs-smoke                     # obs-rust/obs-studio master
+gh workflow run smoke.yml -R obs-rust/obs-smoke -f target=32.2.2    # a release tag of the fork
+gh workflow run smoke.yml -R obs-rust/obs-smoke -f target=<branch-or-sha>
 ```
 
 | Input | Default | Meaning |
 |---|---|---|
-| `target` | `main` | `main` uses the artifacts of the newest successful `push.yaml` run on `obs-rust/obs-studio` `master`; anything else is a release tag (`latest` = newest release). |
-| `release_repo` | `obsproject/obs-studio` | Where release tags are looked up. |
+| `target` | `main` | Ref of `obs-rust/obs-studio` to build: `main` (= `master`), a tag, a branch or a commit SHA. |
 
-Runners: `windows-2025` (x64 zip), `macos-26` (Apple Silicon dmg), `ubuntu-26.04` (deb, under Xvfb).
+Builds run on the fork's CI images (`windows-2025-vs2026` x64, `macos-26` arm64, `ubuntu-26.04` x86_64)
+with the fork's own `build-obs`/`package-obs` actions; a cold build takes roughly 30–60 minutes.
+Smoke runs on `windows-2025`, `macos-26` and `ubuntu-26.04` (under Xvfb).
 
 ## Branches
 
@@ -39,13 +41,7 @@ A metrics history branch (peak RSS, startup time over time) is planned but not b
 
 ## Layout
 
-- `.github/workflows/smoke.yml`: resolve target → per-OS smoke matrix → aggregate, push `smoke-results`, deploy Pages.
+- `.github/workflows/smoke.yml`: resolve target → build the Rust fork per OS → per-OS smoke matrix → aggregate, push `smoke-results`, deploy Pages.
 - `scripts/run_obs.py`: launch OBS, wait for startup, screenshot, write `result.json`.
 - `scripts/aggregate.py`: merge per-OS results into `results.json`.
 - `scripts/build_site.py`: render `results.json` into the Pages site.
-
-## Artifact access
-
-Downloading another repository's workflow artifacts may need more than the default
-`GITHUB_TOKEN`. If the `main` download fails, add a repository secret `OBS_ARTIFACT_TOKEN`
-(fine-grained PAT with *Actions: read* on `obs-rust/obs-studio`); the workflow prefers it when set.
